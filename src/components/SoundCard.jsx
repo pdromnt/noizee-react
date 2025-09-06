@@ -21,9 +21,9 @@ const SoundCard = ({ sound, pauseAllSounds }) => {
   return (
     <div className="text-center">
       {audio}
-      <img onClick={state.playing ? controls.pause : controls.play} className="w-20 mx-auto" title={sound.screenname}
+      <img onClick={state.playing ? controls.pause : controls.play} className="w-16 mx-auto" title={sound.screenname}
            src={`/assets/icons/${sound.icon}`}/>
-      <small className="text-white ml-5">{sound.screenname}</small>&nbsp;
+      <small className="text-white ml-5 text-nowrap">{sound.screenname}</small>&nbsp;
       <span className={`
             transition-opacity duration-500 ease-in-out text-white
             ${state.playing ? 'opacity-100' : 'opacity-0'}

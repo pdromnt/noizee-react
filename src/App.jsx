@@ -26,12 +26,12 @@ const App = () => {
   }, []);
 
   return (
-    <div className="flex flex-col align-middle bg-gray-800 min-h-dvh">
+    <div className="flex flex-col">
       <header className="mx-auto">
         <img alt="Noizee" src={logo}/>
       </header>
 
-      <div title="Stop all sounds" className="absolute right-0 mr-3 mt-2 text-xl cursor-pointer"
+      <div title="Stop all sounds" className="absolute right-1 mt-2 text-xl cursor-pointer"
            onClick={pauseAll}>🔇
       </div>
 
