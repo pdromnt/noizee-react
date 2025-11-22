@@ -46,6 +46,67 @@ const App = () => {
     getSoundList();
   }, []);
 
+  // Media Session API integration: metadata and action handlers
+  useEffect(() => {
+    if (!('mediaSession' in navigator)) return
+
+    try {
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: 'Background Noise',
+        artist: 'Noizee',
+        album: 'Ambient Sounds',
+        artwork: [
+          { src: 'pwa-192x192.png', sizes: '192x192', type: 'image/png' }
+        ]
+      })
+    } catch (e) {
+      // Some browsers may throw when constructing MediaMetadata; ignore silently
+    }
+
+    const playHandler = () => {
+      // Resume/play all audio elements on the page
+      document.querySelectorAll('audio').forEach((a) => {
+        a.play?.().catch(() => {})
+      })
+    }
+
+    const pauseHandler = () => {
+      document.querySelectorAll('audio').forEach((a) => a.pause())
+    }
+
+    const stopHandler = () => {
+      document.querySelectorAll('audio').forEach((a) => {
+        a.pause()
+        try { a.currentTime = 0 } catch (e) {}
+      })
+    }
+
+    try {
+      navigator.mediaSession.setActionHandler('play', playHandler)
+    } catch (e) {}
+    try {
+      navigator.mediaSession.setActionHandler('pause', pauseHandler)
+    } catch (e) {}
+    try {
+      navigator.mediaSession.setActionHandler('stop', stopHandler)
+    } catch (e) {}
+
+    return () => {
+      try { navigator.mediaSession.setActionHandler('play', null) } catch (e) {}
+      try { navigator.mediaSession.setActionHandler('pause', null) } catch (e) {}
+      try { navigator.mediaSession.setActionHandler('stop', null) } catch (e) {}
+      try { navigator.mediaSession.metadata = null } catch (e) {}
+    }
+  }, [])
+
+  // Keep mediaSession.playbackState in sync with `playingCount`
+  useEffect(() => {
+    if (!('mediaSession' in navigator)) return
+    try {
+      navigator.mediaSession.playbackState = playingCount > 0 ? 'playing' : 'paused'
+    } catch (e) {}
+  }, [playingCount])
+
   return (
     <div className="flex flex-col items-center">
       <header className="mx-auto py-6 w-full max-w-6xl px-4 flex items-center justify-between">
