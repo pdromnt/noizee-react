@@ -7,6 +7,7 @@ const SoundCard = ({ sound, pauseAllSounds, onPlay, onPause }) => {
   const gainRef = useRef(null)
   const [volume, setVolume] = useState(0.3)
   const [isPlaying, setIsPlaying] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
 
   // create or resume audio context and connect nodes lazily on first play
   // (creation handled in togglePlay)
@@ -16,21 +17,39 @@ const SoundCard = ({ sound, pauseAllSounds, onPlay, onPause }) => {
     const el = audioRef.current
     if (!el) return
 
-    const handlePlay = () => {
+    const handlePlaying = () => {
       setIsPlaying(true)
+      setIsLoading(false)
       if (typeof onPlay === 'function') onPlay()
     }
     const handlePause = () => {
       setIsPlaying(false)
+      setIsLoading(false)
       if (typeof onPause === 'function') onPause()
     }
+    const handleWaiting = () => {
+      setIsLoading(true)
+    }
+    const handleCanPlay = () => {
+      setIsLoading(false)
+    }
+    const handleError = () => {
+      setIsLoading(false)
+      setIsPlaying(false)
+    }
 
-    el.addEventListener('play', handlePlay)
+    el.addEventListener('playing', handlePlaying)
     el.addEventListener('pause', handlePause)
+    el.addEventListener('waiting', handleWaiting)
+    el.addEventListener('canplay', handleCanPlay)
+    el.addEventListener('error', handleError)
 
     return () => {
-      el.removeEventListener('play', handlePlay)
+      el.removeEventListener('playing', handlePlaying)
       el.removeEventListener('pause', handlePause)
+      el.removeEventListener('waiting', handleWaiting)
+      el.removeEventListener('canplay', handleCanPlay)
+      el.removeEventListener('error', handleError)
     }
   }, [onPlay, onPause])
 
@@ -119,8 +138,14 @@ const SoundCard = ({ sound, pauseAllSounds, onPlay, onPause }) => {
           alt={sound.screenname}
           src={`/assets/icons/${sound.icon}`}
         />
-            <span className={`absolute inset-0 flex items-center justify-center pointer-events-none transform transition duration-300 ${isPlaying ? 'opacity-100 scale-100' : 'opacity-0 scale-75'}`}>
-              <span className="bg-black/50 rounded-full ring-1 ring-white/20 px-3 py-2 flex items-center justify-center text-white text-2xl">⏸</span>
+            <span className={`absolute inset-0 flex items-center justify-center pointer-events-none transform transition duration-300 ${isPlaying || isLoading ? 'opacity-100 scale-100' : 'opacity-0 scale-75'}`}>
+              {isLoading ? (
+                <span className="bg-black/50 rounded-full p-2 flex items-center justify-center">
+                  <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                </span>
+              ) : (
+                <span className="bg-black/50 rounded-full ring-1 ring-white/20 px-3 py-2 flex items-center justify-center text-white text-2xl">⏸</span>
+              )}
             </span>
       </div>
       <div className="w-full mt-2 flex items-center justify-center md:justify-center">
