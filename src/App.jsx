@@ -1,15 +1,15 @@
 import { useEffect, useState, useRef } from 'react'
 import SoundCard from './components/SoundCard'
-import PauseAllButton from './components/PauseAllButton'
+import PauseAllButton from './components/MediaControlButton'
 import logo from './assets/logo.png'
 
 const App = () => {
   const [soundList, setSoundList] = useState([]);
   const [pauseAllSounds, setPauseAllSounds] = useState(false);
   const [playingCount, setPlayingCount] = useState(0);
-  const [showMuted, setShowMuted] = useState(false);
-  const muteTimeoutRef = useRef(null);
-  const muteDuration = 3000 // ms
+  // whether there is a previously-playing set of tracks we can resume
+  const [canResume, setCanResume] = useState(false)
+  const lastPlayingRef = useRef(new Set())
 
   const getSoundList = () => {
     fetch("./assets/soundlist.json")
@@ -20,27 +20,42 @@ const App = () => {
   };
 
   const pauseAll = () => {
+    // remember which elements were playing so we can resume them later
+    lastPlayingRef.current.clear()
+    document.querySelectorAll('audio').forEach((a) => {
+      try {
+        if (!a.paused) lastPlayingRef.current.add(a.id)
+      } catch (e) {}
+    })
+    setCanResume(lastPlayingRef.current.size > 0)
+
     // pause audio in children
-    setPauseAllSounds(true);
+    setPauseAllSounds(true)
     // mark no one is playing
-    setPlayingCount(0);
-    // show muted icon
-    setShowMuted(true);
-
-    // clear any existing mute timeout
-    if (muteTimeoutRef.current) {
-      clearTimeout(muteTimeoutRef.current);
-      muteTimeoutRef.current = null;
-    }
-
-    muteTimeoutRef.current = setTimeout(() => {
-      setShowMuted(false);
-      muteTimeoutRef.current = null;
-    }, muteDuration);
+    setPlayingCount(0)
 
     // briefly set pause flag so children pause, then clear to allow user to play
-    setTimeout(() => setPauseAllSounds(false), 300);
-  };
+    setTimeout(() => setPauseAllSounds(false), 300)
+  }
+
+  const resumeLast = () => {
+    const ids = Array.from(lastPlayingRef.current)
+    if (ids.length === 0) return
+    ids.forEach((id) => {
+      const a = document.getElementById(id)
+      if (a) a.play?.().catch(() => {})
+    })
+    lastPlayingRef.current.clear()
+    setCanResume(false)
+  }
+
+  const globalToggle = () => {
+    if (playingCount > 0) {
+      pauseAll()
+    } else if (canResume) {
+      resumeLast()
+    }
+  }
 
   useEffect(() => {
     getSoundList();
@@ -64,21 +79,42 @@ const App = () => {
     }
 
     const playHandler = () => {
-      // Resume/play all audio elements on the page
+      // Resume only the audio elements that were playing when we last paused/stopped
+      const toResume = lastPlayingRef.current
+      if (!toResume || toResume.size === 0) return
       document.querySelectorAll('audio').forEach((a) => {
-        a.play?.().catch(() => {})
+        if (toResume.has(a.id)) {
+          a.play?.().catch(() => {})
+        }
       })
+      // once resumed, clear the list
+      lastPlayingRef.current.clear()
+      setCanResume(false)
     }
 
     const pauseHandler = () => {
-      document.querySelectorAll('audio').forEach((a) => a.pause())
+      // remember which elements were playing so we can selectively resume later
+      lastPlayingRef.current.clear()
+      document.querySelectorAll('audio').forEach((a) => {
+        try {
+          if (!a.paused) lastPlayingRef.current.add(a.id)
+        } catch (e) {}
+        a.pause()
+      })
+      setCanResume(lastPlayingRef.current.size > 0)
     }
 
     const stopHandler = () => {
+      // remember which elements were playing, then stop and reset them
+      lastPlayingRef.current.clear()
       document.querySelectorAll('audio').forEach((a) => {
+        try {
+          if (!a.paused) lastPlayingRef.current.add(a.id)
+        } catch (e) {}
         a.pause()
         try { a.currentTime = 0 } catch (e) {}
       })
+      setCanResume(lastPlayingRef.current.size > 0)
     }
 
     try {
@@ -113,9 +149,9 @@ const App = () => {
         <img alt="Noizee" src={logo} className="h-12 sm:h-16"/>
         <PauseAllButton
           isPlaying={playingCount > 0}
-          showMuted={showMuted}
-          onClick={pauseAll}
-          title={playingCount > 0 ? 'Pause all playing sounds' : (showMuted ? 'Muted (3s)' : '')}
+          canResume={canResume}
+          onClick={globalToggle}
+          title={playingCount > 0 ? 'Pause all playing sounds' : (canResume ? 'Resume previous sounds' : '')}
         />
       </header>
 
@@ -126,12 +162,9 @@ const App = () => {
             sound={sound}
             pauseAllSounds={pauseAllSounds}
             onPlay={() => {
-              // if muted was showing, cancel it and show pause instead
-              if (muteTimeoutRef.current) {
-                clearTimeout(muteTimeoutRef.current)
-                muteTimeoutRef.current = null
-              }
-              if (showMuted) setShowMuted(false)
+              // clear any previously-tracked resume set when user manually starts a sound
+              lastPlayingRef.current.clear()
+              setCanResume(false)
               // ensure pauseAll is cleared so play isn't immediately paused
               if (pauseAllSounds) setPauseAllSounds(false)
               setPlayingCount((c) => c + 1)
