@@ -140,11 +140,11 @@ const SoundCard = ({ sound, pauseAllSounds, onPlay, onPause }) => {
         />
             <span className={`absolute inset-0 flex items-center justify-center pointer-events-none transform transition duration-300 ${isPlaying || isLoading ? 'opacity-100 scale-100' : 'opacity-0 scale-75'}`}>
               {isLoading ? (
-                <span className="bg-black/50 rounded-full p-2 flex items-center justify-center">
+                <span className="bg-black/50 rounded-full ring-1 ring-white/20 w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center">
                   <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                 </span>
               ) : (
-                <span className="bg-black/50 rounded-full ring-1 ring-white/20 px-3 py-2 flex items-center justify-center text-white text-2xl">⏸</span>
+                <span className="bg-black/50 rounded-full ring-1 ring-white/20 w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center text-white text-2xl leading-none">⏸</span>
               )}
             </span>
       </div>
@@ -153,6 +153,10 @@ const SoundCard = ({ sound, pauseAllSounds, onPlay, onPause }) => {
       </div>
       <input
         onInput={onVolumeInput}
+        onPointerDown={(e) => e.stopPropagation()}
+        onMouseDown={(e) => e.stopPropagation()}
+        onTouchStart={(e) => e.stopPropagation()}
+        onClick={(e) => e.stopPropagation()}
         type="range"
         min="0"
         max="1"
