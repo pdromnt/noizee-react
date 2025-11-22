@@ -1,10 +1,15 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import SoundCard from './components/SoundCard'
+import PauseAllButton from './components/PauseAllButton'
 import logo from './assets/logo.png'
 
 const App = () => {
   const [soundList, setSoundList] = useState([]);
   const [pauseAllSounds, setPauseAllSounds] = useState(false);
+  const [playingCount, setPlayingCount] = useState(0);
+  const [showMuted, setShowMuted] = useState(false);
+  const muteTimeoutRef = useRef(null);
+  const muteDuration = 3000 // ms
 
   const getSoundList = () => {
     fetch("./assets/soundlist.json")
@@ -15,10 +20,26 @@ const App = () => {
   };
 
   const pauseAll = () => {
+    // pause audio in children
     setPauseAllSounds(true);
-    setTimeout(() => {
-      setPauseAllSounds(false);
-    }, 500)
+    // mark no one is playing
+    setPlayingCount(0);
+    // show muted icon
+    setShowMuted(true);
+
+    // clear any existing mute timeout
+    if (muteTimeoutRef.current) {
+      clearTimeout(muteTimeoutRef.current);
+      muteTimeoutRef.current = null;
+    }
+
+    muteTimeoutRef.current = setTimeout(() => {
+      setShowMuted(false);
+      muteTimeoutRef.current = null;
+    }, muteDuration);
+
+    // briefly set pause flag so children pause, then clear to allow user to play
+    setTimeout(() => setPauseAllSounds(false), 300);
   };
 
   useEffect(() => {
@@ -29,18 +50,33 @@ const App = () => {
     <div className="flex flex-col items-center">
       <header className="mx-auto py-6 w-full max-w-6xl px-4 flex items-center justify-between">
         <img alt="Noizee" src={logo} className="h-12 sm:h-16"/>
-        <button
-          title="Stop all sounds"
+        <PauseAllButton
+          isPlaying={playingCount > 0}
+          showMuted={showMuted}
           onClick={pauseAll}
-          className="text-xl cursor-pointer bg-gray-600/30 hover:bg-gray-600/50 rounded px-3 py-1"
-        >
-          🔇
-        </button>
+          title={playingCount > 0 ? 'Pause all playing sounds' : (showMuted ? 'Muted (3s)' : '')}
+        />
       </header>
 
       <div className="mx-auto grid grid-cols-3 gap-6 p-4 max-w-6xl w-full">
         {soundList.map((sound) => (
-          <SoundCard key={sound.filename} sound={sound} pauseAllSounds={pauseAllSounds}/>
+          <SoundCard
+            key={sound.filename}
+            sound={sound}
+            pauseAllSounds={pauseAllSounds}
+            onPlay={() => {
+              // if muted was showing, cancel it and show pause instead
+              if (muteTimeoutRef.current) {
+                clearTimeout(muteTimeoutRef.current)
+                muteTimeoutRef.current = null
+              }
+              if (showMuted) setShowMuted(false)
+              // ensure pauseAll is cleared so play isn't immediately paused
+              if (pauseAllSounds) setPauseAllSounds(false)
+              setPlayingCount((c) => c + 1)
+            }}
+            onPause={() => setPlayingCount((c) => Math.max(0, c - 1))}
+          />
         ))}
       </div>
 
