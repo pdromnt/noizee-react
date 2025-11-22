@@ -1,6 +1,6 @@
 # Noizee (React Port)
 
-An port of the original Noizee in Vue3 to React (and also Tailwind, which previously was purely in hand-made CSS), which itself is an opensource alternative to Noisli.
+An port of the original Noizee in Vue3 to React (also using Tailwind, which previously was purely in hand-made CSS), this project is itself an opensource alternative to Noisli.
 
 ## Project setup
 Simply use `npm i`.
@@ -17,8 +17,8 @@ npm run build
 
 ## Contributing
 
-I'd rather not, but if you want open a PR.
+I'd rather not, but if you want please fork.
 
 ## License
 
-Code is licensed under the ISC. Icons are owned by Eucalyp. Sound files are by Freesound.
+Code is licensed under the UNLICENSE. Icons are owned by Eucalyp. Sound files are owned by Freesound.
