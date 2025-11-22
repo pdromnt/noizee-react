@@ -55,7 +55,7 @@ const App = () => {
           <a className="text-green-600" target="_blank" href="https://freesound.org/" title="Freesound">Freesound</a>
           <br/>
           Developed with ♥️ by&nbsp;
-          <a className="text-green-600" target="_blank" href="https://github.com/pedromorais486">pedroMNT_</a>
+          <a className="text-green-600" target="_blank" href="https://github.com/pdromnt/noizee-react">pdromnt</a>
         </small>
       </footer>
     </div>
