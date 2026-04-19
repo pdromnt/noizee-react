@@ -1,11 +1,11 @@
-import React from 'react'
+import { useState, useEffect } from 'react'
 
 const PauseAllButton = ({ isPlaying, canResume, onClick, title }) => {
   const TRANS_MS = 200
   const visible = Boolean(isPlaying || canResume)
-  const [displayIcon, setDisplayIcon] = React.useState(null)
+  const [displayIcon, setDisplayIcon] = useState(null)
 
-  React.useEffect(() => {
+  useEffect(() => {
     // Immediately show resume when requested, or pause when playing
     if (canResume && !isPlaying) {
       setDisplayIcon('play')

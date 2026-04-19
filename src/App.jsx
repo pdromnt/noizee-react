@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react'
 import SoundCard from './components/SoundCard'
-import PauseAllButton from './components/MediaControlButton'
+import PauseAllButton from './components/PauseAllButton'
 import logo from './assets/logo.png'
 
 const App = () => {

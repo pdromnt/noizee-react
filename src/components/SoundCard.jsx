@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const SoundCard = ({ sound, pauseAllSounds, onPlay, onPause }) => {
   const audioRef = useRef(null)
@@ -118,6 +118,7 @@ const SoundCard = ({ sound, pauseAllSounds, onPlay, onPause }) => {
       tabIndex={0}
       onKeyDown={(e) => { if (e.key === 'Enter') togglePlay(); }}
       onClick={() => togglePlay()}
+      aria-label={`Play or pause ${sound.screenname}`}
       className={
         `flex flex-col items-center bg-gray-700/40 rounded-lg p-3
          transform transition duration-200 ease-in-out
